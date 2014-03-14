@@ -1,0 +1,30 @@
+﻿<Window x:Class="MvvmTwitter.Views.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="ThreeDBorderWindow"
+        WindowState="Maximized"
+        Background="Black"
+        Title="Incredibly detailed and beautiful MVVM Twitter Demo" MinHeight="700" MinWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Background="DarkBlue">
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Margin" Value="0,0,20,0" />
+                </Style>
+            </StackPanel.Resources>
+            <Button Content="Show Ugly DataGrid" Command="{Binding OnShowUglyClick}" />
+            <Button Content="Show Prettier View" Command="{Binding OnShowLessUglyClick}" />
+            <Button Content="Block View Injection" Command="{Binding OnKeepCurrentView}" />
+            <Button Content="Allow View Injection" Command="{Binding OnAllowViewsToSwitch}" />
+            <TextBlock Text="---- This is all in the ShellView ----" Foreground="White" />
+        </StackPanel>
+        <ContentControl Content="{Binding CurrentView, Mode=OneWay}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
+                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1"/>
+    </Grid>
+</Window>

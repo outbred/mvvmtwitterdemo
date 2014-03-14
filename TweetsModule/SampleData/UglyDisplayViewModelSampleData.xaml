@@ -1,0 +1,5 @@
+﻿<ViewModels:UglyDisplayViewModel xmlns:ViewModels="clr-namespace:TweetsModule.ViewModels" xmlns:Interfaces="clr-namespace:Infrastructure.Services.Interfaces;assembly=Infrastructure" CanSwitchView="True" IsInDesignMode="False" IsInDesignModeStatic="True" State="Loaded" SearchString="Integer quisque vivamus sed" Searching="False">
+	<ViewModels:UglyDisplayViewModel.MessageBoxService>
+		<Interfaces:IMessageBoxService/>
+	</ViewModels:UglyDisplayViewModel.MessageBoxService>
+</ViewModels:UglyDisplayViewModel>

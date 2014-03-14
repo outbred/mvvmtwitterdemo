@@ -1,0 +1,18 @@
+﻿<Window x:Class="MvvmTwitter.ReuseTheWheel.Views.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewModelLocator="http:\\www.codeplex.com\MEFedMVVM"
+        xmlns:regions="http://www.codeplex.com/CompositeWPF"
+        viewModelLocator:ViewModelLocator.ViewModel="ShellViewModel"
+        Title="Incredibly detailed and beautiful MVVM Twitter Demo: Reusing That Wheel" MinHeight="650" MinWidth="725">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<ContentControl regions:RegionManager.RegionName="MenuRegion" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
+                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+		<ContentControl regions:RegionManager.RegionName="MainRegion" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" 
+                        VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" />
+	</Grid>
+</Window>

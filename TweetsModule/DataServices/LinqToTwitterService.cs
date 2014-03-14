@@ -39,20 +39,17 @@ namespace TweetsModule.DataServices
     private readonly IMessageBoxService MessageBoxService;
     private static bool _gettingThemTweets = false;
     private static readonly object Locker = new object();
-    private static readonly SingleUserAuthorizer _appAuth;
+    private static readonly ITwitterAuthorizer _appAuth;
 
     static LinqToTwitterService()
     {
-      var store = new SingleUserInMemoryCredentials()
-                  {
-                    ConsumerKey = "8SBo35KV2hEXeOQaW6ZDaw",
-                    ConsumerSecret = "fhNwwxui5hd8yeJJb6ZGrsKyxHEPk3d2dk1dLnFo2hM",
-                    TwitterAccessToken = "18685497-iqr69ZuFEyZWMDSiMbN1EcDg7cjwK1icCwgQxE",
-                    TwitterAccessTokenSecret = "YypZ5u076tLcPsfm1PKGIdP9I5NITkxRikQ3uIP7oAE"
-                  };
-      _appAuth = new SingleUserAuthorizer()
+      _appAuth = new ApplicationOnlyAuthorizer()
                  {
-                   Credentials = store
+                   Credentials = new XAuthCredentials()
+                                 {
+                                   ConsumerKey = "8SBo35KV2hEXeOQaW6ZDaw",
+                                   ConsumerSecret = "fhNwwxui5hd8yeJJb6ZGrsKyxHEPk3d2dk1dLnFo2hM"
+                                 }
                  };
       _appAuth.Authorize();
     }

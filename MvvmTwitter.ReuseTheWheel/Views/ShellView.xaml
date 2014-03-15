@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModelLocator="http:\\www.codeplex.com\MEFedMVVM"
         xmlns:regions="http://www.codeplex.com/CompositeWPF"
-        viewModelLocator:ViewModelLocator.ViewModel="ShellViewModel"
+        viewModelLocator:ViewModelLocator.SharedViewModel="ShellViewModel"
         Title="Incredibly detailed and beautiful MVVM Twitter Demo: Reusing That Wheel" MinHeight="650" MinWidth="725">
 	<Grid>
 		<Grid.RowDefinitions>

@@ -68,8 +68,6 @@ namespace TweetsModule.ViewModels
                                       }
                                     };
       viewAwareStatus.ViewUnloaded += () => State = Unloaded;
-      //Microsoft.Practices.Prism.Regions.RegionManager.SetRegionManager(viewAwareStatus.View as DependencyObject, RegionManager);
-      //Microsoft.Practices.Prism.Regions.RegionManager.UpdateRegions();
     }
 
     #region Overrides of DisplayViewModelBase

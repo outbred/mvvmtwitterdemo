@@ -40,14 +40,5 @@ namespace TweetsModule.Views
     {
       InitializeComponent();
     }
-
-    private void lstTweets_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-      var tweet = e.AddedItems.Cast<LinqTweet>().FirstOrDefault();
-      if (tweet != null)
-      {
-        Process.Start(tweet.Link);
-      }
-    }
   }
 }

@@ -2,8 +2,9 @@
 *Project Description*
 {project:description}
 
-[image:http://www.intersoftpt.com/Support/ClientUI/Docs/images/MVVM_Overview.jpg]
-(An MVVM overview)
+![MVVM Overview](http://www.intersoftpt.com/Support/ClientUI/Docs/images/MVVM_Overview.jpg)
+(MVVM Overview)
+
 
 There are two versions in the source code - one using a custom MVVM framework tailored specifically for the needs of the app (which are small), and another reusing existing MVVM tools in a modular expansion that easily allows for functionality to be dropped in at a later time.
 

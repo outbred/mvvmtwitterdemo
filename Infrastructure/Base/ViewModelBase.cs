@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Windows;
+using CommonServiceLocator;
 using Infrastructure.Base;
 using Infrastructure.Helpers;
 using Infrastructure.Services;
@@ -39,7 +40,6 @@ using Infrastructure.Services.Interfaces;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Prism.Events;
 using Microsoft.Practices.Prism.Regions;
-using Microsoft.Practices.ServiceLocation;
 
 #endregion
 

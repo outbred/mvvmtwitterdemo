@@ -25,12 +25,12 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reactive.Linq;
+using CommonServiceLocator;
 using Infrastructure.Base;
 using Infrastructure.Helpers;
 using Infrastructure.Services.Interfaces;
 using Microsoft.Practices.Prism.Events;
 using Microsoft.Practices.Prism.Regions;
-using Microsoft.Practices.ServiceLocation;
 using TweetsModule.ViewModels;
 using TweetsModule.Views;
 

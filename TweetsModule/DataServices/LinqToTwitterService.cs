@@ -33,89 +33,90 @@ using TweetsModule.Models;
 
 namespace TweetsModule.DataServices
 {
-  [Export(typeof (ITweetService))]
-  internal class LinqToTwitterService : ITweetService
-  {
-    private readonly IMessageBoxService MessageBoxService;
-    private static bool _gettingThemTweets = false;
-    private static readonly object Locker = new object();
-    private static readonly ITwitterAuthorizer _appAuth;
-
-    static LinqToTwitterService()
+    [Export(typeof(ITweetService))]
+    internal class LinqToTwitterService : ITweetService
     {
-      _appAuth = new ApplicationOnlyAuthorizer()
-                 {
-                   Credentials = new XAuthCredentials()
-                                 {
-                                   ConsumerKey = "8SBo35KV2hEXeOQaW6ZDaw",
-                                   ConsumerSecret = "fhNwwxui5hd8yeJJb6ZGrsKyxHEPk3d2dk1dLnFo2hM"
-                                 }
-                 };
-      _appAuth.Authorize();
-    }
+        private readonly IMessageBoxService MessageBoxService;
+        private static bool _gettingThemTweets = false;
+        private static readonly object Locker = new object();
+        private static readonly ApplicationOnlyAuthorizer _appAuth;
 
-    [ImportingConstructor]
-    public LinqToTwitterService(IMessageBoxService messageBoxService)
-    {
-      MessageBoxService = messageBoxService;
-    }
+        static LinqToTwitterService()
+        {
+            var store = new InMemoryCredentialStore()
+            {
+                ConsumerKey = "8SBo35KV2hEXeOQaW6ZDaw",
+                ConsumerSecret = "fhNwwxui5hd8yeJJb6ZGrsKyxHEPk3d2dk1dLnFo2hM",
+            };
+            _appAuth = new ApplicationOnlyAuthorizer()
+            {
+                CredentialStore = store
+            };
+            _appAuth.AuthorizeAsync();
+        }
 
-    public Task GetMeSomeTweets<T>(Action<IEnumerable<T>> onComplete, string searchTerm = "Bulla") where T : class
-    {
-      return Task.Factory.StartNew(() =>
-                                   {
-                                     if (!_gettingThemTweets)
-                                     {
-                                       lock (Locker)
-                                       {
-                                         _gettingThemTweets = true;
-                                       }
-                                       try
-                                       {
-                                         using (var context = new TwitterContext(_appAuth))
+        [ImportingConstructor]
+        public LinqToTwitterService(IMessageBoxService messageBoxService)
+        {
+            MessageBoxService = messageBoxService;
+        }
+
+        public Task GetMeSomeTweets<T>(Action<IEnumerable<T>> onComplete, string searchTerm = "Bulla") where T : class
+        {
+            return Task.Factory.StartNew(() =>
                                          {
-                                           var searchResponse =
-                                             (from search in context.Search
-                                              where search.Type == SearchType.Search && search.Query == (searchTerm ?? "utahcodecamp")
-                                              select search).FirstOrDefault();
+                                             if (!_gettingThemTweets)
+                                             {
+                                                 lock (Locker)
+                                                 {
+                                                     _gettingThemTweets = true;
+                                                 }
+                                                 try
+                                                 {
+                                                     using (var context = new TwitterContext(_appAuth))
+                                                     {
+                                                         var searchResponse =
+                                                     (from search in context.Search
+                                                    where search.Type == SearchType.Search && search.Query == (searchTerm ?? "utahcodecamp")
+                                                    select search).FirstOrDefault();
 
-                                           if (searchResponse != null && searchResponse.Statuses != null)
-                                           {
-                                             var results = (from status in searchResponse.Statuses
-                                                            let url = status.User != null && status.User.Identifier != null
-                                                                        ? string.Format("http://twitter.com/{0}/statuses/{1}", status.User.Identifier.ScreenName, status.StatusID)
-                                                                        : null
-                                                            select new LinqTweet()
-                                                                   {
-                                                                     Author = new Author()
-                                                                              {
-                                                                                Name = status.User != null ? status.User.Name : (status.ScreenName ?? "unknown"),
-                                                                                Uri = status.User != null ? status.User.Url : null
-                                                                              },
-                                                                     Content = status.Text,
-                                                                     Id = status.StatusID,
-                                                                     Image = status.User != null ? status.User.ProfileImageUrl : null,
-                                                                     Link = url,
-                                                                     Published = status.CreatedAt,
-                                                                   }).ToList();
-                                             onComplete(results.Cast<T>());
-                                           }
-                                         }
-                                       }
-                                       finally
-                                       {
-                                         lock (Locker)
-                                         {
-                                           _gettingThemTweets = false;
-                                         }
-                                       }
-                                     }
-                                   });
-    }
+                                                         if (searchResponse != null && searchResponse.Statuses != null)
+                                                         {
+                                                             var results = (from status in searchResponse.Statuses
+                                                                            let url = status.User != null
+                                                                                  ? string.Format("http://twitter.com/{0}/statuses/{1}", status.User.ScreenName, status.StatusID)
+                                                                                  : null
+                                                                            select new LinqTweet()
+                                                                            {
+                                                                                Author = new Author()
+                                                                                {
+                                                                                    Name = status.User != null ? status.User.Name : (status.ScreenName ?? "unknown"),
+                                                                                    Uri = status.User != null ? status.User.Url : null
+                                                                                },
+                                                                                Content = status.Text,
+                                                                                Id = status.ID.ToString(),
+                                                                                Image = status.User != null ? status.User.ProfileImageUrl : null,
+                                                                                Link = url,
+                                                                                Published = status.CreatedAt,
+                                                                            }).ToList();
+                                                             onComplete(results.Cast<T>());
+                                                         }
+                                                     }
+                                                 }
+                                                 finally
+                                                 {
+                                                     lock (Locker)
+                                                     {
+                                                         _gettingThemTweets = false;
+                                                     }
+                                                 }
+                                             }
+                                         });
+        }
 
-    public bool IsSupported<T>() where T : class
-    {
-      return typeof (T) == typeof (LinqTweet);
+        public bool IsSupported<T>() where T : class
+        {
+            return typeof(T) == typeof(LinqTweet);
+        }
     }
-  }
 }

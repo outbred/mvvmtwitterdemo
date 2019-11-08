@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 using System.Windows;
+using CommonServiceLocator;
 using Infrastructure.Base;
 using Infrastructure.Services.Interfaces;
 using MEFedMVVM.ViewModelLocator;
@@ -32,112 +33,111 @@ using Microsoft.Practices.Prism.Events;
 using Microsoft.Practices.Prism.MefExtensions;
 using Microsoft.Practices.Prism.Modularity;
 using Microsoft.Practices.Prism.Regions;
-using Microsoft.Practices.ServiceLocation;
 using MvvmTwitter.ReuseTheWheel.Views;
 
 #endregion
 
 namespace MvvmTwitter.ReuseTheWheel
 {
-  public class Bootstrapper : MefBootstrapper, IComposer, IContainerProvider
-  {
-    private CompositionContainer _compositionContainer;
-
-    protected override void ConfigureAggregateCatalog()
+    public class Bootstrapper : MefBootstrapper, IComposer, IContainerProvider
     {
-      try
-      {
-        base.ConfigureAggregateCatalog();
+        private CompositionContainer _compositionContainer;
 
-        // infrastructure
-        AggregateCatalog.Catalogs.Add(new AssemblyCatalog(typeof (ViewModelBase).Assembly));
-        // this assembly
-        AggregateCatalog.Catalogs.Add(new AssemblyCatalog(typeof (Bootstrapper).Assembly));
+        protected override void ConfigureAggregateCatalog()
+        {
+            try
+            {
+                base.ConfigureAggregateCatalog();
 
-        // mefedmvvm services
-        AggregateCatalog.Catalogs.Add(new AssemblyCatalog(typeof (ViewModelLocator).Assembly));
-      }
-      catch (Exception ex)
-      {
-        Infrastructure.Helpers.Logger.Default.Error("Unable to configure catalog", ex);
-        throw;
-      }
+                // infrastructure
+                AggregateCatalog.Catalogs.Add(new AssemblyCatalog(typeof(ViewModelBase).Assembly));
+                // this assembly
+                AggregateCatalog.Catalogs.Add(new AssemblyCatalog(typeof(Bootstrapper).Assembly));
+
+                // mefedmvvm services
+                AggregateCatalog.Catalogs.Add(new AssemblyCatalog(typeof(ViewModelLocator).Assembly));
+            }
+            catch (Exception ex)
+            {
+                Infrastructure.Helpers.Logger.Default.Error(ex, "Unable to configure catalog");
+                throw;
+            }
+        }
+
+        protected override void InitializeShell()
+        {
+            base.InitializeShell();
+
+            // VM base common services
+            ViewModelBase.DispatcherService = _compositionContainer.GetExportedValue<IDispatcherService>();
+            ViewModelBase.Aggregator = _compositionContainer.GetExportedValue<IEventAggregator>();
+            ViewModelBase.MessageBoxService = _compositionContainer.GetExportedValue<IMessageBoxService>();
+            ViewModelBase.FolderBrowserService = _compositionContainer.GetExportedValue<IFolderBrowserService>();
+            ViewModelBase.RegionManager = _compositionContainer.GetExportedValue<IRegionManager>();
+            ViewModelBase.Container = _compositionContainer.GetExportedValue<IServiceLocator>();
+
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                                                                  {
+                                                                      var shell = Shell as ShellView;
+                                                                      Application.Current.MainWindow = shell;
+
+                                                                      Application.Current.MainWindow.Show();
+                                                                      Application.Current.MainWindow.Activate();
+                                                                  }));
+        }
+
+        #region Overrides of Bootstrapper
+
+        private object _shellViewModel;
+        private ShellView _shellView;
+
+        protected override DependencyObject CreateShell()
+        {
+            //init MEFedMVVM composed
+            LocatorBootstrapper.ApplyComposer(this);
+
+            _shellView = Container.GetExportedValue<ShellView>();
+
+            return _shellView;
+        }
+
+        protected override CompositionContainer CreateContainer()
+        {
+            // Now add the MEF export provider for view models
+            var exportProvider = new MEFedMVVMExportProvider(MEFedMVVMCatalog.CreateCatalog(AggregateCatalog));
+            _compositionContainer = new CompositionContainer(null, true, exportProvider);
+            exportProvider.SourceProvider = _compositionContainer;
+
+            return _compositionContainer;
+        }
+
+        protected override IModuleCatalog CreateModuleCatalog()
+        {
+            return Microsoft.Practices.Prism.Modularity.ModuleCatalog.CreateFromXaml(new Uri("/MvvmTwitter.ReuseTheWheel;component/ModuleCatalog.xaml", UriKind.Relative));
+        }
+
+        #endregion
+
+        #region Implementation of IComposer (For MEFedMVVM)
+
+        public ComposablePartCatalog InitializeContainer()
+        {
+            //return the same catalog as the PRISM one
+            return AggregateCatalog;
+        }
+
+        public IEnumerable<ExportProvider> GetCustomExportProviders()
+        {
+            //In case you want some custom export providers
+            return null;
+        }
+
+        #endregion
+
+        CompositionContainer IContainerProvider.CreateContainer()
+        {
+            // The MEFedMVVM call to create a container
+            return _compositionContainer;
+        }
     }
-
-    protected override void InitializeShell()
-    {
-      base.InitializeShell();
-
-      // VM base common services
-      ViewModelBase.DispatcherService = _compositionContainer.GetExportedValue<IDispatcherService>();
-      ViewModelBase.Aggregator = _compositionContainer.GetExportedValue<IEventAggregator>();
-      ViewModelBase.MessageBoxService = _compositionContainer.GetExportedValue<IMessageBoxService>();
-      ViewModelBase.FolderBrowserService = _compositionContainer.GetExportedValue<IFolderBrowserService>();
-      ViewModelBase.RegionManager = _compositionContainer.GetExportedValue<IRegionManager>();
-      ViewModelBase.Container = _compositionContainer.GetExportedValue<IServiceLocator>();
-
-      Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                                                            {
-                                                              var shell = Shell as ShellView;
-                                                              Application.Current.MainWindow = shell;
-
-                                                              Application.Current.MainWindow.Show();
-                                                              Application.Current.MainWindow.Activate();
-                                                            }));
-    }
-
-    #region Overrides of Bootstrapper
-
-    private object _shellViewModel;
-    private ShellView _shellView;
-
-    protected override DependencyObject CreateShell()
-    {
-      //init MEFedMVVM composed
-      LocatorBootstrapper.ApplyComposer(this);
-
-      _shellView = Container.GetExportedValue<ShellView>();
-
-      return _shellView;
-    }
-
-    protected override CompositionContainer CreateContainer()
-    {
-      // Now add the MEF export provider for view models
-      var exportProvider = new MEFedMVVMExportProvider(MEFedMVVMCatalog.CreateCatalog(AggregateCatalog));
-      _compositionContainer = new CompositionContainer(null, true, exportProvider);
-      exportProvider.SourceProvider = _compositionContainer;
-
-      return _compositionContainer;
-    }
-
-    protected override IModuleCatalog CreateModuleCatalog()
-    {
-      return Microsoft.Practices.Prism.Modularity.ModuleCatalog.CreateFromXaml(new Uri("/MvvmTwitter.ReuseTheWheel;component/ModuleCatalog.xaml", UriKind.Relative));
-    }
-
-    #endregion
-
-    #region Implementation of IComposer (For MEFedMVVM)
-
-    public ComposablePartCatalog InitializeContainer()
-    {
-      //return the same catalog as the PRISM one
-      return AggregateCatalog;
-    }
-
-    public IEnumerable<ExportProvider> GetCustomExportProviders()
-    {
-      //In case you want some custom export providers
-      return null;
-    }
-
-    #endregion
-
-    CompositionContainer IContainerProvider.CreateContainer()
-    {
-      // The MEFedMVVM call to create a container
-      return _compositionContainer;
-    }
-  }
 }

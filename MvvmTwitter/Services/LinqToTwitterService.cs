@@ -32,76 +32,76 @@ using MvvmTwitter.Utilities;
 
 namespace MvvmTwitter.Services
 {
-  internal class LinqToTwitterService : ITweetService
-  {
-    private static readonly IMessageBoxService MessageBoxService;
-    private static bool _gettingThemTweets = false;
-    private static readonly object Locker = new object();
-    private static readonly ApplicationOnlyAuthorizer _pinAuth;
-
-    static LinqToTwitterService()
+    internal class LinqToTwitterService : ITweetService
     {
-      MessageBoxService = Container.GetSharedInstance<IMessageBoxService>();
-      var store = new InMemoryCredentials()
-                  {
-                    ConsumerKey = "8SBo35KV2hEXeOQaW6ZDaw",
-                    ConsumerSecret = "fhNwwxui5hd8yeJJb6ZGrsKyxHEPk3d2dk1dLnFo2hM",
-                  };
-      _pinAuth = new ApplicationOnlyAuthorizer()
-                 {
-                   Credentials = store
-                 };
-      _pinAuth.Authorize();
-    }
+        private static readonly IMessageBoxService MessageBoxService;
+        private static bool _gettingThemTweets = false;
+        private static readonly object Locker = new object();
+        private static readonly ApplicationOnlyAuthorizer _pinAuth;
 
-    public void GetMeSomeTweetsAsync<T>(Action<IEnumerable<T>> onComplete, string searchTerm = "Bulla") where T : class
-    {
-      if (!_gettingThemTweets)
-      {
-        lock (Locker)
+        static LinqToTwitterService()
         {
-          _gettingThemTweets = true;
+            MessageBoxService = Container.GetSharedInstance<IMessageBoxService>();
+            var store = new InMemoryCredentialStore()
+            {
+                ConsumerKey = "8SBo35KV2hEXeOQaW6ZDaw",
+                ConsumerSecret = "fhNwwxui5hd8yeJJb6ZGrsKyxHEPk3d2dk1dLnFo2hM",
+            };
+            _pinAuth = new ApplicationOnlyAuthorizer()
+            {
+                CredentialStore = store
+            };
+            _pinAuth.AuthorizeAsync();
         }
-        using (var context = new TwitterContext(_pinAuth))
-        {
-          var searchResponse =
-            (from search in context.Search
-             where search.Type == SearchType.Search && search.Query == (searchTerm ?? "utahcodecamp")
-             select search).FirstOrDefault();
 
-          if (searchResponse != null && searchResponse.Statuses != null)
-          {
-            var results = (from status in searchResponse.Statuses
-                           let url = status.User != null && status.User.Identifier != null
-                                       ? string.Format("http://twitter.com/{0}/statuses/{1}", status.User.Identifier.ScreenName, status.StatusID)
-                                       : null
-                           select new LinqTweet()
-                                  {
-                                    Author = new Author()
-                                             {
+        public void GetMeSomeTweetsAsync<T>(Action<IEnumerable<T>> onComplete, string searchTerm = "Donald Trump") where T : class
+        {
+            if (!_gettingThemTweets)
+            {
+                lock (Locker)
+                {
+                    _gettingThemTweets = true;
+                }
+                using (var context = new TwitterContext(_pinAuth))
+                {
+                    var searchResponse =
+                      (from search in context.Search
+                       where search.Type == SearchType.Search && search.Query == (searchTerm ?? "Donald Trump")
+                       select search).FirstOrDefault();
+
+                    if (searchResponse != null && searchResponse.Statuses != null)
+                    {
+                        var results = (from status in searchResponse.Statuses
+                                       let url = status.User != null
+                                                   ? string.Format("http://twitter.com/{0}/statuses/{1}", status.User.ScreenName, status.StatusID)
+                                                   : null
+                                       select new LinqTweet()
+                                       {
+                                           Author = new Author()
+                                           {
                                                Name = status.User != null ? status.User.Name : (status.ScreenName ?? "unknown"),
                                                Uri = status.User != null ? status.User.Url : null
-                                             },
-                                    Content = status.Text,
-                                    Id = status.StatusID,
-                                    Image = status.User != null ? status.User.ProfileImageUrl : null,
-                                    Link = url,
-                                    Published = status.CreatedAt,
-                                  }).ToList();
-            onComplete(results.Cast<T>());
-          }
+                                           },
+                                           Content = status.Text,
+                                           Id = status.ID.ToString(),
+                                           Image = status.User != null ? status.User.ProfileImageUrl : null,
+                                           Link = url,
+                                           Published = status.CreatedAt,
+                                       }).ToList();
+                        onComplete(results.Cast<T>());
+                    }
+                }
+
+                lock (Locker)
+                {
+                    _gettingThemTweets = false;
+                }
+            }
         }
 
-        lock (Locker)
+        public bool IsSupported<T>() where T : class
         {
-          _gettingThemTweets = false;
+            return typeof(T) == typeof(LinqTweet);
         }
-      }
     }
-
-    public bool IsSupported<T>() where T : class
-    {
-      return typeof (T) == typeof (LinqTweet);
-    }
-  }
 }

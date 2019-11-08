@@ -21,12 +21,12 @@
 #region
 
 using System.ComponentModel.Composition;
+using CommonServiceLocator;
 using Infrastructure.Base;
 using Infrastructure.Services.Interfaces;
 using MenuModule.Views;
 using Microsoft.Practices.Prism.Events;
 using Microsoft.Practices.Prism.Regions;
-using Microsoft.Practices.ServiceLocation;
 
 #endregion
 

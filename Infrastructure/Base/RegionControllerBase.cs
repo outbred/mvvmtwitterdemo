@@ -22,11 +22,11 @@
 
 using System;
 using System.Linq;
+using CommonServiceLocator;
 using Infrastructure.Helpers;
 using Infrastructure.Services.Interfaces;
 using Microsoft.Practices.Prism.Events;
 using Microsoft.Practices.Prism.Regions;
-using Microsoft.Practices.ServiceLocation;
 
 #endregion
 

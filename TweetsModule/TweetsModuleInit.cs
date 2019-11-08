@@ -20,9 +20,9 @@
 #region
 
 using System.ComponentModel.Composition;
+using CommonServiceLocator;
 using Microsoft.Practices.Prism.MefExtensions.Modularity;
 using Microsoft.Practices.Prism.Modularity;
-using Microsoft.Practices.ServiceLocation;
 
 #endregion
 
